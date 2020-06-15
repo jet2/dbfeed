@@ -126,7 +126,10 @@ def db_prepare():
         print("OK CONNECT database: ", connectionstring)
     except Exception as e:
         print("Cant connect database: " + str(e), connectionstring)
-    con.close()
+    try:
+        con.close()
+    except:
+        pass
     con = None
 
 def initmarkers():

@@ -4,18 +4,19 @@ from flask import Flask, render_template, request
 from orm_pypyodbc import insert_opc, db_prepare, initmarkers, markers_extend, get_markerset
 from settings import webport
 import logging
-
+import datetime
 
 app = Flask(__name__, static_url_path='/static')
 
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+#log = logging.getLogger('werkzeug')
+#log.setLevel(logging.ERROR)
 
 @app.route('/')
 def index():
     user = {'username': 'Anonymous'}
+    print('external ping')
     return render_template('index.html')
 
 
@@ -28,11 +29,11 @@ def insopcdata():
         marker = request.values['marker']
         print(request.remote_addr, 'marker', marker)
         if marker not in get_markerset():
-            inss=insert_opc(json_text)
+            tick = datetime.datetime.now()
+            inss = insert_opc(json_text)
+            print("dt: ",datetime.datetime.now()-tick)
             if inss:
                 xres = '999'
-            
-                
         else:
             print('non inserted')
         
