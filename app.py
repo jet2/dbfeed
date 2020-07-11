@@ -6,12 +6,15 @@ from settings import webport
 import logging
 import datetime
 
+
 app = Flask(__name__, static_url_path='/static')
+
 
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 #log = logging.getLogger('werkzeug')
 #log.setLevel(logging.ERROR)
+
 
 @app.route('/')
 def index():
