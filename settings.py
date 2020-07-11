@@ -1,6 +1,6 @@
 webport=8080
-mssql_connection = {"hostname": 'tcp:192.168.0.113,49172',
-                      "database": 'wccdata',
+mssql_connection = {"hostname": 'tcp:192.168.0.121,1433',
+                      "database": 'winccdata',
                       "username": 'sa',
                       "password": '123'}
 mssql_connectionn = {"hostname": 'SNR-KS-REDIS\SQLEXPRESSREDIS',

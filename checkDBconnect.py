@@ -11,9 +11,9 @@ connectionstring = 'DRIVER={SQL Server}' + \
                    ';PWD=' + mssql_connection["password"]
 print("database: ", connectionstring)
 try:
-	con = pyodbc.connect(connectionstring)
-	print("OK CONNECT")
+    con = pyodbc.connect(connectionstring)
+    print("OK CONNECT")
 except Exception as e:
-	print("Cant connect database: " + str(e), connectionstring)
+    print("Cant connect database: " + str(e), connectionstring)
 con.close()
 con = None

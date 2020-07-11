@@ -49,10 +49,39 @@ def insopcdata():
     return xres
 
 
-if __name__ == '__main__':
+@app.route('/addfile', methods=['POST'])
+def addfile():
+    xres = '333'
+    try:
+        csv_text = request.values['data']
+        filename = request.values['filename']
+        hostname = request.values['hostname']
+        dirName, fName = os.path.split(os.path.realpath(__file__))
 
+        if not os.path.exists(os.path.join(dirName, 'csv')):
+            os.makedirs(os.path.join(dirName, 'csv'))
+
+        fullpath = os.path.join(dirName, 'csv', os.path.splitext(filename)[0] + '-' + hostname + '.csv')
+        # dirName, fName = os.path.split(self.origFileName)
+        print(request.remote_addr, 'filename =', fullpath)
+        arr = csv_text.split("\r\n")
+
+        try:
+            with open(fullpath, 'w') as f:
+                f.write("\n".join(([item for item in arr if len(item)>3])))
+                f.flush()
+            xres = '999'
+        except Exception as e:
+            print("Cant save opc 1: " + str(e))
+            xres = '333'
+
+    except Exception as e:
+        print("Cant save opc 2: " + str(e))
+
+    return xres
+
+
+if __name__ == '__main__':
     db_prepare()
-    initmarkers()
-    print('markerset:', get_markerset())
 
     app.run(debug=False, host='0.0.0.0', port=webport)
