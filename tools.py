@@ -1,4 +1,5 @@
 import os
+from settings import tag_typer
 
 def getFilesToDelete(self, newFileName):
     dirName, fName = os.path.split(self.origFileName)
@@ -22,3 +23,12 @@ def getFilesToDelete(self, newFileName):
     else:
         result = result[:len(result) - self.backupCount]
     return result
+
+async def work_files_loop():
+
+    while True:
+        opc_queue_logger.warning( f"constants_loaded: {constants_filled} ", )
+        if not constants_filled:
+            await get_constants()
+        else:
+            return
