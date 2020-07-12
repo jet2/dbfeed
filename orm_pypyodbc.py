@@ -132,7 +132,7 @@ def insert_5_minutes(array_of_rows=[]):
 
     conx.close()
 
-    print(f"{datetime.datetime.now()} 5 min insert result: {res}")
+    # print(f"{datetime.datetime.now()} 5 min insert result: {res}")
     return res == 0
 
 

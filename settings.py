@@ -46,7 +46,7 @@ tag_typer = {
              "23_1-7_9_10/4_2_RUN.Out#Value", "2901_DP_Coupler/Conveyor43_RUN.Out#Value",
              "2901_DP_Coupler/Conveyor80_RUN.Out#Value", "31_1-1/31_1-1_RUN.Out#Value", "42_1-1/42_1-1_RUN.Out#Value"],
 
-    "avg": ["23_1-3_1/1SP1.PV_Out#Value", "23_1-3_1/1SP2.PV_Out#Value", "23_1-3_1/2SP1.PV_Out#Value",
+            "avg": ["23_1-3_1/1SP1.PV_Out#Value", "23_1-3_1/1SP2.PV_Out#Value", "23_1-3_1/2SP1.PV_Out#Value",
             "23_1-3_1/2SP2.PV_Out#Value", "23_1-3_2/1SP1.PV_Out#Value", "23_1-3_2/1SP2.PV_Out#Value",
             "23_1-3_2/2SP1.PV_Out#Value", "23_1-3_2/2SP2.PV_Out#Value", "23_1-3_3/1SP1.PV_Out#Value",
             "23_1-3_3/1SP2.PV_Out#Value", "23_1-3_3/2SP1.PV_Out#Value", "23_1-3_3/2SP2.PV_Out#Value",
@@ -76,6 +76,7 @@ tag_typer = {
             "PT23310b/PID.PV_Out#Value", "PT23310c/PID.PV_Out#Value", "PT23310d/PID.PV_Out#Value",
             "PT23319a/PID.PV_Out#Value", "PT23319b/PID.PV_Out#Value", "PT23607a/PID.PV_Out#Value",
             "PT23607b/PID.PV_Out#Value"],
+
             "sum": ["2901_DP_Coupler/WI29124_SUM_DP.PV_Out#Value", "31_1-9/31_1-9_Wit.WitTotYear",
                     "42_1-13_WT/42_1-13_Wit.WitTotYear", "Wit/WIT_29.WitTotYear", "Wit/WIT_30.WitTotYear",
                     "Wit_43_51/Wit_43.WitTotYear"],
