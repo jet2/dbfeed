@@ -117,6 +117,26 @@ def insert_opc(json_opcvalues):
     return res == 0
 
 
+def insert_5_minutes(array_of_rows=[]):
+    global connectionstring
+    conx = pyodbc.connect(connectionstring)
+    cursorx = conx.cursor()
+    cursorx.fast_executemany = True
+    try:
+        cursorx.executemany("INSERT INTO opc_data (dt_begin, dt_end, tagname, tagvalue) VALUES (?,?,?,?)", array_of_rows)
+        cursorx.commit()
+        res = 0
+    except Exception as e:
+        res = 1
+        print(f"cur.execute(): error = {e}")
+
+    conx.close()
+
+    print(f"{datetime.datetime.now()} 5 min insert result: {res}")
+    return res == 0
+
+
+
 def db_prepare():
     global connectionstring
 

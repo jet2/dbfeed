@@ -52,6 +52,7 @@ def make_filegroups():
 
 
 def integrate_filegroups_withmaster_true(files_dict):
+    final_records_array = list()
     dirName, fName = os.path.split(os.path.realpath(__file__))
     dirName = os.path.join(dirName, 'csv')
     alltagnames = tag_typer["sumbyavg"] + tag_typer["sum"]+tag_typer["avg"]+tag_typer["bool"]
@@ -65,7 +66,7 @@ def integrate_filegroups_withmaster_true(files_dict):
     for item in tag_typer["bool"]:
         alltagsTypes[item] = 0
 
-    for minute_node_key, files_arr in files_dict:
+    for minute_node_key, files_arr in files_dict.items():
         data5min = None
         # для каждой пятиминутки свой набор тэговых массивов
         megadict = dict()
@@ -82,14 +83,17 @@ def integrate_filegroups_withmaster_true(files_dict):
             for row in data5min:
                 # в последнем поле хранится значение @RM_MASTER
                 if row[-1] == "True":
-                    megadict[row[1]].append(row)
-    for tagname, values_array in megadict:
-        result_value = -0.01
-        valtype = alltagsTypes.get(tagname,-1)
-
-        if valtype > -1:
-            result_value = prepare_value(array_values=values_array, values_type=alltagsTypes[tagname])
-
+                    if alltagsTypes.get(row[1], False):
+                        megadict[row[1]].append(row)
+        for tagname, values_array in megadict.items():
+            valtype = alltagsTypes.get(tagname, -1)
+            if valtype > -1:
+                result_value = prepare_value(array_values=values_array, values_type=alltagsTypes[tagname])
+                dt_begin = datetime.datetime.strptime(minute_node_key+'-00', "%Y-%m-%d-%H-%M-%S")
+                dt_end = dt_begin + datetime.timedelta(minutes=5)
+                # final_records_array.append(["dt_begin": dt_begin,"dt_end": dt_end,"tagname": tagname, "tagvalue": result_value})
+                final_records_array.append([dt_begin, dt_end, tagname,  result_value])
+    return final_records_array
 
 def prepare_value(array_values=None, values_type=-1):
     result = -0.01
@@ -104,7 +108,7 @@ def prepare_value(array_values=None, values_type=-1):
             pass
         elif values_type == 3:
             pass
-    return result
+    return result*(values_type+1)
 
 # def work_files_loop():
 #

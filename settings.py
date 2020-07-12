@@ -44,7 +44,7 @@ tag_typer = {
              "23_1-7_1_4/2_2_RUN.Out#Value", "23_1-7_5_8/3_1_RUN.Out#Value", "23_1-7_5_8/3_2_RUN.Out#Value",
              "23_1-7_5_8/3_3_RUN.Out#Value", "23_1-7_5_8/3_4_RUN.Out#Value", "23_1-7_9_10/4_1_RUN.Out#Value",
              "23_1-7_9_10/4_2_RUN.Out#Value", "2901_DP_Coupler/Conveyor43_RUN.Out#Value",
-             "2901_DP_Coupler/Conveyor80_RUN.Out#Value", "31_1-1/31_1-1_RUN.Out#Value", "42_1-1/42_1-1_RUN.Out#Value"]
+             "2901_DP_Coupler/Conveyor80_RUN.Out#Value", "31_1-1/31_1-1_RUN.Out#Value", "42_1-1/42_1-1_RUN.Out#Value"],
 
     "avg": ["23_1-3_1/1SP1.PV_Out#Value", "23_1-3_1/1SP2.PV_Out#Value", "23_1-3_1/2SP1.PV_Out#Value",
             "23_1-3_1/2SP2.PV_Out#Value", "23_1-3_2/1SP1.PV_Out#Value", "23_1-3_2/1SP2.PV_Out#Value",
