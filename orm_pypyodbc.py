@@ -1,10 +1,16 @@
 import datetime
 import json
-
+import os
 import pyodbc
 import logging
-
+from rolloverlogs import create_timed_rotating_log
 from settings import mssql_connection
+
+dirName, fName = os.path.split(os.path.realpath(__file__))
+dirName = os.path.join(dirName, 'opc_file_processor')
+file_processor_logger = create_timed_rotating_log(dirName, "opc_file_processor")
+
+
 con = None
 connectionstring = 'DRIVER={SQL Server}' + \
                    ';SERVER=' + mssql_connection["hostname"] + \
@@ -128,7 +134,8 @@ def insert_5_minutes(array_of_rows=[]):
         res = 0
     except Exception as e:
         res = 1
-        print(f"cur.execute(): error = {e}")
+
+        file_processor_logger.Error(f"cur.execute(): error = {e}")
 
     conx.close()
 
@@ -143,9 +150,9 @@ def db_prepare():
     con = None
     try:
         con = pyodbc.connect(connectionstring)
-        print("OK CONNECT database: ", connectionstring)
-    except Exception as e:
-        print("Cant connect database: " + str(e), connectionstring)
+        file_processor_logger.info(f"OK CONNECT database {connectionstring}")
+    except:
+        file_processor_logger.error(f"Cant connect database {connectionstring}: ", exc_info=True)
     try:
         con.close()
     except:

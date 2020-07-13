@@ -3,9 +3,8 @@ from flask import Flask, render_template, request
 #from orm_peewee import insert_opc, db_prepare
 from orm_pypyodbc import insert_opc, db_prepare, initmarkers, markers_extend, get_markerset
 from settings import webport
-import logging
 import datetime
-
+from tools import parallel_file_processor_main
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -83,5 +82,5 @@ def addfile():
 
 if __name__ == '__main__':
     db_prepare()
-
+    parallel_file_processor_main()
     app.run(debug=False, host='0.0.0.0', port=webport)

@@ -4,6 +4,12 @@ from settings import tag_typer
 import datetime
 import csv
 
+from multiprocessing import Process
+from orm_pypyodbc import insert_5_minutes, file_processor_logger as fp_logger
+
+file_processor_logger = fp_logger
+
+
 def getFilesToDelete(self, newFileName):
     dirName, fName = os.path.split(self.origFileName)
     dName, newFileName = os.path.split(newFileName)
@@ -33,7 +39,7 @@ def make_filegroups():
     dirName = os.path.join(dirName, 'csv')
     fileNames = files = [f for f in os.listdir(dirName) if os.path.isfile(os.path.join(dirName, f))]
     fileNames.sort()
-    print(f"filenames={fileNames}")
+    # print(f"filenames={fileNames}")
     goodfiles = dict()
     # все файлы старше 5 минут притягиваются к началу 5-минутного интервала с :Х0 или :Х5 минуты
     for item in fileNames:
@@ -69,7 +75,7 @@ def integrate_filegroups_withmaster_true(files_dict):
 
     # для каждой пятиминутки свой набор файлов
     for minute_node_key, files_arr in files_dict.items():
-        print(f"NEW BORDER: {minute_node_key}")
+        file_processor_logger.info(f"new minute node: {minute_node_key}")
         data5min = list()
         # для каждой пятиминутки свой набор тэговых массивов
         megadict = dict()
@@ -156,7 +162,7 @@ def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
                 try:
                     sumx += float(item[2])
                 except:
-                    print(f"except: {item}")
+                    file_processor_logger.error(f"Exception in file_processor item: {item}", exc_info=True)
             result = sumx/len(array_values)
             # среднее, делим сумму значений на количество
             pass
@@ -165,7 +171,21 @@ def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
             result = array_values[-1][2]
         elif values_type == 3:
             #накопления вычисляемые из средних
-            pass
+            dt_end = dt_begin + datetime.timedelta(minutes=5)
+            xlen = len(array_values)
+            result = 0
+            if xlen > 0:
+                for i in range(0, xlen):
+                    row_dt = datetime.datetime.strptime(array_values[i][0][:19], '%d-%m-%Y %H:%M:%S')
+                    row_value = float(array_values[i][2])
+                    if i+1 < xlen:
+                        row_dt_next = datetime.datetime.strptime(array_values[i+1][0][:19], '%d-%m-%Y %H:%M:%S')
+                    else:
+                        row_dt_next = dt_end
+
+                    # 5 кубометров в час это 0.001389 кубометров в секунду
+                    # у нас есть кубометры в час и секунды -> м3/ч надо делить на 3600 и умножать на секунды интервала
+                    result += (row_dt_next-row_dt).total_seconds() * row_value / 3600
     return result
 
 def kill_files(files_dict):
@@ -174,14 +194,41 @@ def kill_files(files_dict):
     for k, myfiles in files_dict.items():
         for xfile in myfiles:
             os.remove(os.path.join(dirName, xfile))
-# def work_files_loop():
-#
-#
-#     while True:
-#         opc_queue_logger.warning( f"constants_loaded: {constants_filled} ", )
-#         if not constants_filled:
-#             await get_constants()
-#         else:
-#             return
-#         sleep(30)
+
+
+def opc_file_processor_loop():
+    global file_processor_logger
+    # Inside a while loop, wait for incoming events.
+    file_processor_logger.info('Start opc_file_processor_loop')
+
+    while True:
+        try:
+            try:
+                file_processor_logger.info(f" opc_files_handle begin")
+                filesX = make_filegroups()
+                alldata = integrate_filegroups_withmaster_true(files_dict=filesX)
+                if len(alldata)>0:
+                    file_processor_logger.info(f" rows to handle = {len(alldata)}")
+                    res = insert_5_minutes(array_of_rows=alldata)
+                    if res:
+                        kill_files(filesX)
+                    file_processor_logger.info(f" opc_files_handle result = {res}")
+                else:
+                    file_processor_logger.info(f"No data to process")
+            except:
+                file_processor_logger.error(f"Exception in file_processor", exc_info=True)
+        finally:
+            sleep(60)
+
+
+def parallel_file_processor_main():
+    global file_processor_logger
+    p = Process(target=opc_file_processor_loop)
+    p.start()  # start execution of myFunc() asychronously
+
+
+
+
+
+
 
