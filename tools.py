@@ -61,16 +61,27 @@ def make_filegroups():
         dt = datetime.datetime.strptime(item[:16]+'-00', "%Y-%m-%d-%H-%M-%S")
         dtnow = datetime.datetime.now()
         file_processor_logger.warning(f"nowdt = {dtnow}, filedt = {dt}, item={item} = {dtnow - dt}")
-        if dtnow - dt > datetime.timedelta(minutes=5):
-            nmstr = '0' # к нему притягиваются [0,1,2,3,4]
-            if int(item[15]) in [5,6,7,8,9]:
-                nmstr = '5'
-            file_processor_logger.warning(f"test = {item}, [15]={item[15]}")
-            dtnode = item[:15] + nmstr
+
+        nmstr = '0' # к нему притягиваются [0,1,2,3,4]
+        if int(item[15]) in [5,6,7,8,9]:
+            nmstr = '5'
+        file_processor_logger.warning(f"test = {item}, [15]={item[15]}")
+        dtnode = item[:15] + nmstr
+        dtnode_next = datetime.datetime.strptime(dtnode + '-00', "%Y-%m-%d-%H-%M-%S") + datetime.timedelta(minutes=5)
+        # Если текущее время выползло за границу следующего интервала то позволяется использовать все файлы текущего
+        if dtnow >= dtnode_next:
             # print(item, nmstr, dtnode)
             if dtnode not in goodfiles:
                 goodfiles[dtnode] = list()
             goodfiles[dtnode].append(item)
+        # if not_ready_mark:
+        #     goodfiles[dtnode].append("NOTREADY")
+    # result = dict()
+    # for k,v in goodfiles.items():
+    #     if "NOTREADY" in v:
+    #         file_processor_logger.warning(f"{k} not ready")
+    #     else:
+    #         result[k] = v
     return goodfiles
 
 
@@ -79,6 +90,7 @@ def integrate_filegroups_withmaster_true(files_dict):
     dirName, fName = os.path.split(os.path.realpath(__file__))
     dirName = os.path.join(dirName, 'csv')
     alltagnames = tag_typer["sumbyavg"] + tag_typer["sum"]+tag_typer["avg"]+tag_typer["bool"]
+    # словарь типа каждого имени тэга
     alltagsTypes = dict()
     for item in tag_typer["sumbyavg"]:
         alltagsTypes[item] = 3
@@ -114,20 +126,27 @@ def integrate_filegroups_withmaster_true(files_dict):
                 # в последнем поле хранится значение @RM_MASTER
                 if row[-1] == "True":
                     # mynamefound = alltagsTypes.get()
-                    if row[1] in alltagsTypes:
-                        megadict[row[1]].append(row)
+
+                    ### СПЕЦИАЛЬНОЕ НЕБОЕВОЕ ТЕСТОВОЕ ПРЕОБРАЗОВАНИЕ
+                    rowx = row[1].replace("$", ".")
+
+                    if rowx in alltagsTypes:
+                        megadict[rowx].append(row)
                     #else:
                     #    print(f"Not Found type for {row[1]}")
         for tagname, values_array in megadict.items():
-            valtype = alltagsTypes.get(tagname, -1)
+
+            tagnameX = tagname
+
+            valtype = alltagsTypes.get(tagnameX, -1)
             #print(f"Tagname = {tagname}; valtype = {valtype}")
             if valtype > -1:
                 dt_begin = datetime.datetime.strptime(minute_node_key + '-00', "%Y-%m-%d-%H-%M-%S")
                 dt_end = dt_begin + datetime.timedelta(minutes=5)
-                result_value = prepare_value(array_values=values_array, values_type=valtype, tn = tagname, dt_beginX = dt_begin)
+                result_value = prepare_value(array_values=values_array, values_type=valtype, tn = tagnameX, dt_beginX = dt_begin)
 
                 # final_records_array.append(["dt_begin": dt_begin,"dt_end": dt_end,"tagname": tagname, "tagvalue": result_value})
-                final_records_array.append([dt_begin, dt_end, tagname,  result_value])
+                final_records_array.append([dt_begin, dt_end, tagnameX,  result_value])
     return final_records_array
 
 def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
@@ -176,7 +195,7 @@ def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
             sumx = 0.0
             for item in array_values:
                 try:
-                    sumx += float(item[2])
+                    sumx += float(item[2].replace(",","."))
                 except:
                     file_processor_logger.error(f"Exception in file_processor item: {item}", exc_info=True)
             result = sumx/len(array_values)
@@ -193,7 +212,7 @@ def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
             if xlen > 0:
                 for i in range(0, xlen):
                     row_dt = datetime.datetime.strptime(array_values[i][0][:19], '%d-%m-%Y %H:%M:%S')
-                    row_value = float(array_values[i][2])
+                    row_value = float(array_values[i][2].replace(",","."))
                     if i+1 < xlen:
                         row_dt_next = datetime.datetime.strptime(array_values[i+1][0][:19], '%d-%m-%Y %H:%M:%S')
                     else:

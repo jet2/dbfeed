@@ -103,7 +103,7 @@ tag_typer = {
 }
 
 webport=8080
-mssql_connection = {"hostname": 'tcp:192.168.0.122,1433',
+mssql_connection = {"hostname": 'tcp:192.168.0.121,1433',
                       "database": 'winccdata',
                       "username": 'sa',
                       "password": '123'}

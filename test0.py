@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
     print(f"{datetime.now()} Test begin")
     filesX = make_filegroups()
+    print(f"files - {filesX}")
     alldata = integrate_filegroups_withmaster_true(files_dict = filesX)
     res = insert_5_minutes(array_of_rows=alldata)
     if res:
