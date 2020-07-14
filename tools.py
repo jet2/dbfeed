@@ -9,6 +9,21 @@ from orm_pypyodbc import insert_5_minutes, file_processor_logger as fp_logger
 
 file_processor_logger = fp_logger
 
+def millis_interval(start, end):
+    """start and end are datetime instances"""
+    diff = end - start
+    millis = diff.days * 24 * 60 * 60 * 1000
+    millis += diff.seconds * 1000
+    millis += diff.microseconds / 1000
+    return millis
+
+
+def meow():
+    return str(datetime.datetime.now())
+
+
+def meow2():
+    return datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d-%H-%M-%S")
 
 def getFilesToDelete(self, newFileName):
     dirName, fName = os.path.split(self.origFileName)
@@ -37,25 +52,26 @@ def getFilesToDelete(self, newFileName):
 def make_filegroups():
     dirName, fName = os.path.split(os.path.realpath(__file__))
     dirName = os.path.join(dirName, 'csv')
-    fileNames = files = [f for f in os.listdir(dirName) if os.path.isfile(os.path.join(dirName, f))]
+    fileNames = [f for f in os.listdir(dirName) if os.path.isfile(os.path.join(dirName, f))]
     fileNames.sort()
-    # print(f"filenames={fileNames}")
+
     goodfiles = dict()
     # все файлы старше 5 минут притягиваются к началу 5-минутного интервала с :Х0 или :Х5 минуты
     for item in fileNames:
         dt = datetime.datetime.strptime(item[:16]+'-00', "%Y-%m-%d-%H-%M-%S")
         dtnow = datetime.datetime.now()
+        file_processor_logger.warning(f"nowdt = {dtnow}, filedt = {dt}, item={item} = {dtnow - dt}")
         if dtnow - dt > datetime.timedelta(minutes=5):
             nmstr = '0' # к нему притягиваются [0,1,2,3,4]
-            if int(item[15:16]) in [5,6,7,8,9]:
+            if int(item[15]) in [5,6,7,8,9]:
                 nmstr = '5'
+            file_processor_logger.warning(f"test = {item}, [15]={item[15]}")
             dtnode = item[:15] + nmstr
             # print(item, nmstr, dtnode)
             if dtnode not in goodfiles:
                 goodfiles[dtnode] = list()
             goodfiles[dtnode].append(item)
     return goodfiles
-
 
 
 def integrate_filegroups_withmaster_true(files_dict):
@@ -206,6 +222,7 @@ def opc_file_processor_loop():
             try:
                 file_processor_logger.info(f" opc_files_handle begin")
                 filesX = make_filegroups()
+                file_processor_logger.info(f" file groups: {filesX}")
                 alldata = integrate_filegroups_withmaster_true(files_dict=filesX)
                 if len(alldata)>0:
                     file_processor_logger.info(f" rows to handle = {len(alldata)}")

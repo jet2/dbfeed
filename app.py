@@ -81,6 +81,6 @@ def addfile():
 
 
 if __name__ == '__main__':
-    db_prepare()
+    #db_prepare()
     parallel_file_processor_main()
     app.run(debug=False, host='0.0.0.0', port=webport)

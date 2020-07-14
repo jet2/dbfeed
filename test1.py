@@ -1,40 +1,42 @@
-import json
-from tools import make_filegroups, integrate_filegroups_withmaster_true, kill_files
-from orm_pypyodbc import insert_5_minutes
 from datetime import datetime
-import os
+from tools import millis_interval, meow
+import redis
+from time import sleep
+#r = redis.StrictRedis(host='192.168.0.119', port=6379, db=0)
+r = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
 
-sss='''
-{"timestamp":1584902411,"source_name":"WINCC","tagname":"@RM_MASTER","new_value":true,"old_value":1}
-'''
-
+# пишет в редис, изображая сервер орс из файла
 if __name__ == '__main__':
+    with open('misc/data.csv','r') as f:
+        xlist = f.readlines()
+    while True:
+        #     номер стартовой строки csv с нуля
+        startline = 00
+        print(len(xlist))
+        myrange = range(startline, len(xlist) - 1)
+        for i in myrange:
 
-    # dirName, fName = os.path.split(os.path.realpath(__file__))
-    # dirName = os.path.join(dirName, 'csv')
-    # files = [f for f in os.listdir(dirName) if os.path.isfile(os.path.join(dirName, f))]
-    #
-    # files.sort()
-    # print(files)
+            xline1 = xlist[i].split(';')
+            xline2 = xlist[i+1].split(';')
 
-    print(f"{datetime.now()} Test begin")
-    filesX = make_filegroups()
-    alldata = integrate_filegroups_withmaster_true(files_dict = filesX)
-    res = insert_5_minutes(array_of_rows=alldata)
-    if res:
-        kill_files(filesX)
+            dt1 = datetime.strptime(xline1[0][:19], '%d-%m-%Y %H:%M:%S')
+            dt2 = datetime.strptime(xline2[0][:19], '%d-%m-%Y %H:%M:%S')
+            sleeper = millis_interval(dt1, dt2) / 1000
+            opc_name = xline1[1].replace(".","$")
+            opc_value = 0
+            if opc_name[0:4] != "@RM_":
+                if xline1[2] == "True\n":
+                    opc_value = "1"
+                elif xline1[2] == "False\n":
+                    opc_value = "0"
+                else:
+                    opc_value = str(float(xline1[2])).replace(".",",")
+            realdt = meow()
 
-    print(f"{datetime.now()} Test result = {res}")
-
-    # dt_begin = "01-01-2020 15:14:59.000"[:16]
-    # dt_begin2 = "01-01-2020 15:14:59.000"[:19]
-    # # "01-01-2020 15:15:15"[:16] = "01-01-2020 15:15"
-    # if int(dt_begin[-1]) in [5,6,7,8,9]:
-    #     dt_begin = dt_begin[:15]+"5:00"
-    # else:
-    #     dt_begin = dt_begin[:15] + "0:00"
-    # print(dt_begin2, list(range(1,15)) )
-
-
-
-
+            if opc_name[0:4] != "@RM_":
+                print(f'{realdt} [{dt1} | {opc_name} = {opc_value} ] sleep {sleeper} ')
+                r.set(opc_name, opc_value)
+                r.publish(opc_name, opc_value)
+            else:
+                print(f'NON PUBLISH - {realdt} [{dt1} | {opc_name} = {opc_value} ] sleep {sleeper} ')
+            sleep(sleeper)
