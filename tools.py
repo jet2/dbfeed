@@ -144,7 +144,7 @@ def integrate_filegroups_withmaster_true(files_dict):
                 dt_begin = datetime.datetime.strptime(minute_node_key + '-00', "%Y-%m-%d-%H-%M-%S")
                 dt_end = dt_begin + datetime.timedelta(minutes=5)
                 result_value = prepare_value(array_values=values_array, values_type=valtype, tn = tagnameX, dt_beginX = dt_begin)
-                if result_value==-0.000001:
+                if result_value == -0.000001:
                     file_processor_logger.info(f"No VALUE {tagnameX}; valtype = {valtype}; array len = {len(values_array)}")
                 else:
                     final_records_array.append([dt_begin, dt_end, tagnameX,  result_value])
