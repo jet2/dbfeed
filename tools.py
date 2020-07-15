@@ -67,7 +67,7 @@ def make_filegroups():
             nmstr = '5'
         file_processor_logger.warning(f"test = {item}, [15]={item[15]}")
         dtnode = item[:15] + nmstr
-        dtnode_next = datetime.datetime.strptime(dtnode + '-00', "%Y-%m-%d-%H-%M-%S") + datetime.timedelta(minutes=5)
+        dtnode_next = datetime.datetime.strptime(dtnode + '-00', "%Y-%m-%d-%H-%M-%S") + datetime.timedelta(minutes=6)
         # Если текущее время выползло за границу следующего интервала то позволяется использовать все файлы текущего
         if dtnow >= dtnode_next:
             # print(item, nmstr, dtnode)
@@ -144,13 +144,14 @@ def integrate_filegroups_withmaster_true(files_dict):
                 dt_begin = datetime.datetime.strptime(minute_node_key + '-00', "%Y-%m-%d-%H-%M-%S")
                 dt_end = dt_begin + datetime.timedelta(minutes=5)
                 result_value = prepare_value(array_values=values_array, values_type=valtype, tn = tagnameX, dt_beginX = dt_begin)
-
-                # final_records_array.append(["dt_begin": dt_begin,"dt_end": dt_end,"tagname": tagname, "tagvalue": result_value})
-                final_records_array.append([dt_begin, dt_end, tagnameX,  result_value])
+                if result_value==-0.000001:
+                    file_processor_logger.info(f"No VALUE {tagnameX}; valtype = {valtype}; array len = {len(values_array)}")
+                else:
+                    final_records_array.append([dt_begin, dt_end, tagnameX,  result_value])
     return final_records_array
 
 def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
-    result = -0.01
+    result = -0.000001
 
     #print(f"tn: {tn}, vt: {values_type}; len(array_values)= {len(array_values)}")
     # значение готовится на ОДНОЙ ПЯТИМИНУТКЕ
