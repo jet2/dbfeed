@@ -162,58 +162,69 @@ def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
 
         array_values.sort()
         if values_type == 0:
-            # дискретные состояния, вычисляем для 15 интервалов
+            # дискретные состояния, вычисляем для 15 интервалов по 20 сек = 5 минут
+            # для хранения сразу 15 булевских значений на 5 минутном интервале выбран тип с плавающей точкой
+            # 2 = False, 1 = True
+            # 0.111222111222111 => каждая цифра означает наличие хотя бы одного False значение дискретного сигнала внутри 20-секундного интервала
 
             # узнаем начало интервала
             #"01-01-2020 15:15:15"[:16] = "01-01-2020 15:15"
 
             preres = ""
 
+            # заполняем 15 значений для каждых 20 секунд
             for i in range(15):
-                zeroed = False
-                for row in array_values:
+                zeroed = False # считаем, что не пропадал True=сигнал есть
+                for row in array_values: # проверяем все значения тэга попадающие в соответствующие интервалы
                     dt_row = datetime.datetime.strptime(row[0][:19], '%d-%m-%Y %H:%M:%S')
-                    dt_left = dt_begin + datetime.timedelta(seconds=0+20*i)
+                    dt_left = dt_begin + datetime.timedelta(seconds=0+20*i) # вычисляем левую и правую границу каждого интервала
                     dt_right = dt_begin + datetime.timedelta(seconds=20+20*i)
 
-                    if dt_left <= dt_row < dt_right:
-                        if row[2] == "False":
+                    if dt_left <= dt_row < dt_right: # каждое значение из полного массива значений проверяется на попадание в интервал
+                        if row[2] == "False": # обнаружили "пропадание", сигнал не True
                             zeroed = True
                     # if tn == "23_1-1_1/23_1-1_1_RUN.Out#Value":
                     #      print(row, dt_left, dt_right, zeroed, i)
                     if zeroed:
                         break
-                if zeroed:
+                if zeroed: # сигнал "пропадал" добавляем "2"
                     preres += "2"
-                else:
+                else: # сигнал не "пропадал" добавляем "1"
                     preres += "1"
                 # if tn == "23_1-1_1/23_1-1_1_RUN.Out#Value":
                 #      print(f"i={i}, preres={preres}")
-            result = float("0."+preres)
+            result = float("0."+preres) # собираем строку в число
             # if tn == "23_1-1_1/23_1-1_1_RUN.Out#Value":
             #     print(f"tn={tn}, result={result}")
         elif values_type == 1:
+            # устредненное значение складываем и делим на количество
             sumx = 0.0
             for item in array_values:
                 try:
                     sumx += float(item[2].replace(",","."))
                 except:
                     file_processor_logger.error(f"Exception in file_processor item: {item}", exc_info=True)
-            result = sumx/len(array_values)
             # среднее, делим сумму значений на количество
+            result = sumx/len(array_values)
+
             pass
         elif values_type == 2:
             # накопительные - берем последнее
             result = array_values[-1][2]
         elif values_type == 3:
             #накопления вычисляемые из средних
+            # кубометры в час были первую минуту 40м3/ч, вторую минуту 45м3/ч
+            # надо посчитать сколько м3 пролетело за первую минуту, затем сколько м3 за вторую минуту и сложить
             dt_end = dt_begin + datetime.timedelta(minutes=5)
             xlen = len(array_values)
             result = 0
             if xlen > 0:
                 for i in range(0, xlen):
+                    # датавремя для значения
                     row_dt = datetime.datetime.strptime(array_values[i][0][:19], '%d-%m-%Y %H:%M:%S')
+                    # само значение
                     row_value = float(array_values[i][2].replace(",","."))
+                    # находим сколько секунд стояло значение до изменения или до конца интервала
                     if i+1 < xlen:
                         row_dt_next = datetime.datetime.strptime(array_values[i+1][0][:19], '%d-%m-%Y %H:%M:%S')
                     else:
@@ -221,6 +232,7 @@ def prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None):
 
                     # 5 кубометров в час это 0.001389 кубометров в секунду
                     # у нас есть кубометры в час и секунды -> м3/ч надо делить на 3600 и умножать на секунды интервала
+                    # вычисляем сколько этих кубометров пролетело за интервал и суммируем
                     result += (row_dt_next-row_dt).total_seconds() * row_value / 3600
     return result
 

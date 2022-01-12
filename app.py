@@ -6,6 +6,16 @@ from settings import webport
 import datetime
 from tools import parallel_file_processor_main
 
+# Необходимые пояснения:
+# Приложение является вебсервером. Принимает файл (длинную строку) сырых значений тэгов и складирует в свою папку
+# (tools.py).parallel_file_processor_main() это "поток" с вечным циклом обработки поступающих файлов
+# файл разбирается на пачки значений отдельных тэгов
+# для каждой пачки создается значение на 5 минутном интервале и записывается в БД -> файл удаляется
+# значение на 5 минутном интервале создается функцией
+# (tools.py).prepare_value(array_values=None, values_type=-1, tn="", dt_beginX =None)
+# каждая пачка значений обрабатывается согласно типу тэга
+# (tools.py).prepare_value содержит комментарии для описания способа обработки типа
+
 app = Flask(__name__, static_url_path='/static')
 
 
@@ -33,7 +43,7 @@ def insopcdata():
         if marker not in get_markerset():
             tick = datetime.datetime.now()
             inss = insert_opc(json_text)
-            print("dt: ",datetime.datetime.now()-tick)
+            print("dt: ", datetime.datetime.now()-tick)
             if inss:
                 xres = '999'
         else:
